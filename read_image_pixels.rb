@@ -1,5 +1,5 @@
 require 'rmagick'
-require 'benchmark'
+require 'fileutils'
 
 def get_pixel_rgb_value(pixel)
   r_8bit = pixel.red / 257;
@@ -25,16 +25,33 @@ def write_img_to_file(file, img)
   img.write file
 end
 
-if __FILE__ == $PROGRAM_NAME
-  files = %w(swirl.jpg)
-  image_colors = {}
-  files.each do |file|
-    img_file = File.new(file)
-    # img_file = scale_img_to_8x8 img_file
-    img_file = Magick::Image::read(img_file).first
-    image_colors[file] = get_img_rgb_color(img_file)
-    write_img_to_file("scaled_#{file}", img_file)
+if __FILE__ == $PROGRAM_NAME  
+  gif_img = ARGV[0]
+
+  unless gif_img.nil?
+    dirname = 'extracted_gif'
+    FileUtils.rm_rf dirname
+    Dir.mkdir dirname 
+    `convert #{gif_img} #{dirname}/gif.png`
+    files = Dir["#{dirname}/*"]      
+    image_colors = []
+    count = 0
+    files.each do |file|
+      img_file = File.new(file)
+      img_file = scale_img_to_8x8 img_file      
+      image_colors << get_img_rgb_color(img_file.flop)
+      # write_img_to_file("scaled_img#{count}.png", img_file)
+      count += 1
+    end
+      File.open("anim_gif.h", 'w') { |file| file.write("uint32_t anim_gif[][64]=#{image_colors.inspect.gsub('[','{').gsub(']', '}').gsub('"','')};") }     
+  else
+    puts "No input gif image."
   end
-  puts image_colors
+
+  image_colors = []
+  img_file = File.new('2.png')
+  img = Magick::Image::read(img_file).first
+  image_colors << get_img_rgb_color(img)
+  puts "uint32_t anim_gif[][64]=#{image_colors.inspect.gsub('[','{').gsub(']', '}').gsub('"','')};"
 end
 
