@@ -22,6 +22,17 @@ def get_img_rgb_color(img)
   columns.flatten!
 end
 
+def get_img_rgb_color_unreverse(img)
+  columns = []
+  img.each_pixel do |pixel, c, r|
+    if columns[c].nil?
+      columns[c] = []
+    end
+    columns[c].push(get_pixel_rgb_value(pixel))
+  end
+  columns
+end
+
 def scale_img_to_8x8(file)
   img = Magick::Image::read(file).first
   img.scale(8, 8)
@@ -40,24 +51,29 @@ if __FILE__ == $PROGRAM_NAME
     Dir.mkdir dirname
     `convert #{gif_img} #{dirname}/gif.png`
     files = Dir["#{dirname}/*"]
-    image_colors = []
-    count = 0
+    image_colors = []    
     files.each do |file|
       img_file = File.new(file)
       img_file = scale_img_to_8x8 img_file
       image_colors << get_img_rgb_color(img_file.flop)
       # write_img_to_file("scaled_img#{count}.png", img_file)
-      count += 1
+      # count += 1
     end
-      File.open("anim_gif.h", 'w') { |file| file.write("uint32_t anim_gif[][64]=#{image_colors.inspect.gsub('[','{').gsub(']', '}').gsub('"','')};") }
+    count = 0
+    `rm -rf anim_gif.h`
+    image_colors.each do |image_color|        
+      File.open("anim_gif.h", 'a') { |file| file.write("uint32_t anim_gif_#{count}[]=#{image_color.inspect.gsub('[','{').gsub(']', '}').gsub('"','')};\n") }
+      count+=1
+    end
+    # File.open("anim_gif.h", 'w') { |file| file.write("uint32_t anim_gif[][64]=#{image_colors.inspect.gsub('[','{').gsub(']', '}').gsub('"','')};") }
   else
     puts "No input gif image."
   end
 
-  # image_colors = []
-  # img_file = File.new('2.png')
-  # img = Magick::Image::read(img_file).first
-  # image_colors << get_img_rgb_color(img)
-  # puts "uint32_t anim_gif[][64]=#{image_colors.inspect.gsub('[','{').gsub(']', '}').gsub('"','')};"
+  
+  img_file = File.new('2.png')
+  img = Magick::Image::read(img_file).first
+  puts "uint32_t pic_val[][8] = "+get_img_rgb_color_unreverse(img).inspect.gsub('[', '{').gsub(']','}').gsub('"', '')
+  
 end
 
