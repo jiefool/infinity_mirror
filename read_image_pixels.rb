@@ -61,19 +61,13 @@ if __FILE__ == $PROGRAM_NAME
     end
     count = 0
     `rm -rf anim_gif.h`
-    image_colors.each do |image_color|        
-      File.open("anim_gif.h", 'a') { |file| file.write("uint32_t anim_gif_#{count}[]=#{image_color.inspect.gsub('[','{').gsub(']', '}').gsub('"','')};\n") }
-      count+=1
-    end
-    # File.open("anim_gif.h", 'w') { |file| file.write("uint32_t anim_gif[][64]=#{image_colors.inspect.gsub('[','{').gsub(']', '}').gsub('"','')};") }
+    # image_colors.each do |image_color|        
+    #   File.open("anim_gif.h", 'a') { |file| file.write("uint32_t [64]=#{image_color.inspect.gsub('[','{').gsub(']', '}').gsub('"','')};\n") }
+    #   count+=1
+    # end
+    File.open("anim_gif.h", 'w') { |file| file.write("uint32_t anim_gif[][64]=#{image_colors.inspect.gsub('[','{').gsub(']', '}').gsub('"','')};") }
   else
     puts "No input gif image."
   end
-
-  
-  img_file = File.new('2.png')
-  img = Magick::Image::read(img_file).first
-  puts "uint32_t pic_val[][8] = "+get_img_rgb_color_unreverse(img).inspect.gsub('[', '{').gsub(']','}').gsub('"', '')
-  
 end
 
